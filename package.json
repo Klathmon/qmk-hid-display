@@ -7,7 +7,10 @@
     "qmk-hid-display": "./index.js"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "lint": "eslint src/*.js && echo Lint Complete",
+    "lint:fix": "eslint src/*.js --fix && echo Lint Complete",
+    "test": "tape **/*.test.js | faucet"
   },
   "author": "James Lissiak",
   "license": "MIT",
@@ -19,11 +22,17 @@
   "dependencies": {
     "battery-level": "^3.0.0",
     "loudness": "^0.3.0",
+    "node-fetch": "^2.6.0",
     "node-hid": "^1.3.0",
-    "os-utils": "0.0.14",
-    "request": "^2.88.0"
+    "os-utils": "0.0.14"
   },
   "optionalDependencies": {
     "node-audio-windows": "^1.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.5.0",
+    "eslint-config-partylich": "^0.1.1",
+    "faucet": "0.0.1",
+    "tape": "^5.0.1"
   }
 }

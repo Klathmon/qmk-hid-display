@@ -1,0 +1,56 @@
+{
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "eslint-config-partylich"
+  ],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "rules": {
+    "quotes": ["error", "double", { "allowTemplateLiterals": true }],
+    "max-len": [
+      "error",
+      {
+        "code": 100,
+        "tabWidth": 4,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true
+      }
+    ],
+    "indent": [
+      "error",
+      4,
+      {
+        "CallExpression": {
+          "arguments": 2
+        },
+        "FunctionDeclaration": {
+          "body": 1,
+          "parameters": 2
+        },
+        "FunctionExpression": {
+          "body": 1,
+          "parameters": 2
+        },
+        "MemberExpression": 2,
+        "ObjectExpression": 1,
+        "SwitchCase": 1,
+        "ignoredNodes": ["ConditionalExpression"]
+      }
+    ],
+    "no-constant-condition": ["error", { "checkLoops": false }],
+    "no-useless-catch": "off"
+  }
+}
