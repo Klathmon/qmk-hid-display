@@ -1,24 +1,25 @@
 #!/usr/bin/env node
-'use strict';
+"use strict";
 
-const hid = require('node-hid');
-const os = require('os-utils')
-const request = require('request');
-const batteryLevel = require('battery-level');
-const loudness = require('loudness')
+const hid = require("node-hid");
+const os = require("os-utils");
+const request = require("request");
+const batteryLevel = require("battery-level");
+const loudness = require("loudness");
 
-// the node-audio-windows version is much faster on windows, but loudness handles other os's better, so let's get the best of both worlds
-let winAudio
+// the node-audio-windows version is much faster on windows, but loudness handles other os's better,
+// so let's get the best of both worlds
+let winAudio;
 try {
-  winAudio = require('node-audio-windows').volume
+    winAudio = require("node-audio-windows").volume;
 } catch (err) {
-  // do nothing
+    // do nothing
 }
 
 
 // Keyboard info
 const KEYBOARD_NAME = "Lily58";
-const KEYBOARD_USAGE_ID =  0x61;
+const KEYBOARD_USAGE_ID = 0x61;
 const KEYBOARD_USAGE_PAGE = 0xFF60;
 const KEYBOARD_UPDATE_TIME = 1000;
 
@@ -37,61 +38,61 @@ let screenLastUpdate = null;
 function wait(ms) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
-    })
+    });
 }
 
 async function startPerfMonitor() {
-  while (true) {
-      const [
-        cpuUsagePercent,
-        usedMemoryPercent,
-        volumeLevelPercent,
-        batteryPercent,
-      ] = await Promise.all([
-        new Promise((resolve) => os.cpuUsage((usage) => resolve(usage * 100))),
-        100 - (os.freememPercentage() * 100),
-        (os.platform() === 'darwin' ? loudness.getVolume() : winAudio.getVolume() * 100),
-        (await batteryLevel()) * 100,
-      ])
+    while (true) {
+        const [
+            cpuUsagePercent,
+            usedMemoryPercent,
+            volumeLevelPercent,
+            batteryPercent,
+        ] = await Promise.all([
+            new Promise((resolve) => os.cpuUsage((usage) => resolve(usage * 100))),
+            100 - (os.freememPercentage() * 100),
+            (os.platform() === "darwin" ? loudness.getVolume() : winAudio.getVolume() * 100),
+            (await batteryLevel()) * 100,
+        ]);
 
-    const screen = [
-      ['CPU:', cpuUsagePercent],
-      ['RAM:', usedMemoryPercent],
-      ['VOL:', volumeLevelPercent],
-      ['BAT:', batteryPercent],
-    ]
+        const screen = [
+            ["CPU:", cpuUsagePercent],
+            ["RAM:", usedMemoryPercent],
+            ["VOL:", volumeLevelPercent],
+            ["BAT:", batteryPercent],
+        ];
 
-    const maxTitleSize = Math.max(...screen.map(([header]) => header.length))
-    const barGraphSize = 21 - maxTitleSize - 3
+        const maxTitleSize = Math.max(...screen.map(([header]) => header.length));
+        const barGraphSize = 21 - maxTitleSize - 3;
 
-    // Set this to be the latest performance info
-    screens[SCREEN_PERF] = screen.map(([header, percent], index) => {
-      const numBlackTiles = barGraphSize * (percent / 100)
-      return `${header} ${'\u0008'.repeat(Math.ceil(numBlackTiles))}${' '.repeat(barGraphSize - numBlackTiles)}|${title(index, 0)}`
-    }).join('')
+        // Set this to be the latest performance info
+        screens[SCREEN_PERF] = screen.map(([header, percent], index) => {
+            const numBlackTiles = barGraphSize * (percent / 100);
+            return `${ header } ${ "\u0008".repeat(Math.ceil(numBlackTiles)) }${ " ".repeat(barGraphSize - numBlackTiles) }|${ title(index, 0) }`;
+        }).join("");
 
-    await wait(KEYBOARD_UPDATE_TIME)
-  }
+        await wait(KEYBOARD_UPDATE_TIME);
+    }
 }
 
 async function startStockMonitor() {
     // Set the stocks that we want to show
     const stocks = new Map();
     let counter = 0;
-    stocks.set('MSFT', 0);
-    stocks.set('TSLA', 0);
-    stocks.set('GOOG', 0);
-    stocks.set('FB', 0);
+    stocks.set("MSFT", 0);
+    stocks.set("TSLA", 0);
+    stocks.set("GOOG", 0);
+    stocks.set("FB", 0);
 
     // The regex used to grab the price from the yahoo stocks page
     const priceRegex = /"currentPrice":({[^}]+})/;
 
     function getStocks() {
         const promises = [];
-        for (const [key, value] of stocks) {
+        for (const key of stocks.keys()) {
             promises.push(new Promise((resolve) => {
                 // Get the stock price page for the current stock
-                request(`https://finance.yahoo.com/quote/${key}/`, (err, res, body) => {
+                request(`https://finance.yahoo.com/quote/${ key }/`, (err, res, body) => {
                     // Parse out the price and update the map
                     const result = priceRegex.exec(body);
                     if (result && result.length > 1) {
@@ -106,7 +107,7 @@ async function startStockMonitor() {
 
         // Wait for all the stocks to be updated
         return Promise.all(promises);
-    };
+    }
 
     // Just keep updating the data forever
     while (true) {
@@ -119,12 +120,12 @@ async function startStockMonitor() {
         // Create a screen using the stock data
         const lines = [];
         for (const [key, value] of stocks) {
-            const line = `${key.padEnd(5)}: $${value}`;
-            lines.push(`${line}${' '.repeat(16 - line.length)}|  ${title(lines.length, 1)} `);
+            const line = `${ key.padEnd(5) }: $${ value }`;
+            lines.push(`${ line }${ " ".repeat(16 - line.length) }|  ${ title(lines.length, 1) } `);
         }
 
         // Set this to be the latest stock info
-        screens[SCREEN_STOCK] = lines.join('');
+        screens[SCREEN_STOCK] = lines.join("");
 
         // Pause a bit before requesting more info
         await wait(KEYBOARD_UPDATE_TIME);
@@ -171,7 +172,8 @@ async function startWeatherMonitor() {
         if (weather && weather.temp && weather.desc && weather.rain) {
             let description = weather.desc;
 
-            // If we are trying to show the same weather description more than once, and it is longer than 9
+            // If we are trying to show the same weather description more than once, and it is
+            // longer than 9
             // Which is all that will fit in our space, lets scroll it.
             if (lastWeather && weather.desc == lastWeather.desc && weather.desc.length > 9) {
                 // Move the string one character over
@@ -188,10 +190,10 @@ async function startWeatherMonitor() {
 
             // Create the new screen
             const screen =
-                `desc: ${description}${' '.repeat(Math.max(0, 9 - ('' + description).length))} |  ${title(0, 2)} ` +
-                `temp: ${weather.temp.now}${' '.repeat(Math.max(0, 9 - ('' + weather.temp.now).length))} |  ${title(1, 2)} ` +
-                `high: ${weather.temp.high}${' '.repeat(Math.max(0, 9 - ('' + weather.temp.high).length))} |  ${title(2, 2)} ` +
-                `rain: ${weather.rain}%${' '.repeat(Math.max(0, 8 - ('' + weather.rain).length))} |  ${title(3, 2)} `;
+                `desc: ${ description }${ " ".repeat(Math.max(0, 9 - ("" + description).length)) } |  ${ title(0, 2) } ` +
+                `temp: ${ weather.temp.now }${ " ".repeat(Math.max(0, 9 - ("" + weather.temp.now).length)) } |  ${ title(1, 2) } ` +
+                `high: ${ weather.temp.high }${ " ".repeat(Math.max(0, 9 - ("" + weather.temp.high).length)) } |  ${ title(2, 2) } ` +
+                `rain: ${ weather.rain }%${ " ".repeat(Math.max(0, 8 - ("" + weather.rain).length)) } |  ${ title(3, 2) } `;
 
             // Set this to be the latest weather info
             screens[SCREEN_WEATHER] = screen;
@@ -205,7 +207,7 @@ async function startWeatherMonitor() {
 function title(i, titleIndex) {
     // Return the character that indicates the title part from the font data
     if (i === 3) {
-        return '\u00DE';
+        return "\u00DE";
     }
     return String.fromCharCode((0x9A - titleIndex) + i * 32);
 }
@@ -235,16 +237,15 @@ async function sendToKeyboard(screen) {
 
     // Loop through and send each line after a small delay to allow the
     // keyboard to store it ready to send to the slave side once full.
-    let index = 0;
     for (const line of lines) {
-        if (os.platform() === 'darwin'){
-          await wait(100);
+        if (os.platform() === "darwin") {
+            await wait(100);
         }
         keyboard.write(line);
-        if (os.platform() === 'darwin') {
-          await wait(100);
+        if (os.platform() === "darwin") {
+            await wait(100);
         } else {
-          await wait(20);
+            await wait(20);
         }
     }
 
@@ -258,17 +259,19 @@ function updateKeyboardScreen() {
         // Search all devices for a matching keyboard
         const devices = hid.devices();
         for (const d of devices) {
-            if (d.product === KEYBOARD_NAME && d.usage === KEYBOARD_USAGE_ID && d.usagePage === KEYBOARD_USAGE_PAGE) {
+            if (d.product === KEYBOARD_NAME &&
+                d.usage === KEYBOARD_USAGE_ID &&
+                d.usagePage === KEYBOARD_USAGE_PAGE) {
                 // Create a new connection and store it as the keyboard
                 keyboard = new hid.HID(d.path);
                 console.log(`Keyboard connection established.`);
 
                 // Listen for data from the keyboard which indicates the screen to show
-                keyboard.on('data', (e) => {
+                keyboard.on("data", (e) => {
                     // Check that the data is a valid screen index and update the current one
                     if (e[0] >= 1 && e[0] <= screens.length) {
                         currentScreenIndex = e[0] - 1;
-                        console.log(`Keyboard requested screen index: ${currentScreenIndex}`);
+                        console.log(`Keyboard requested screen index: ${ currentScreenIndex }`);
                     }
                 });
 

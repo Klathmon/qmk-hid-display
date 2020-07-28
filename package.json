@@ -7,7 +7,9 @@
     "qmk-hid-display": "./index.js"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "lint": "eslint ./index.js && echo Lint Complete",
+    "lint:fix": "eslint ./index.js --fix && echo Lint Complete"
   },
   "author": "James Lissiak",
   "license": "MIT",
@@ -25,5 +27,9 @@
   },
   "optionalDependencies": {
     "node-audio-windows": "^1.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.5.0",
+    "eslint-config-partylich": "^0.1.1"
   }
 }
